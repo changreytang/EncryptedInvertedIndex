@@ -1,2 +1,2 @@
 # EncryptedInvertedIndex
-Simple encrypted inverted index implementation with 
+Simple encrypted inverted index implementation with support for ranked queries
