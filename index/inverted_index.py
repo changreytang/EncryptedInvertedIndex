@@ -9,9 +9,9 @@ class InvertedIndex(object):
 
     def document(self, document_id):
         try:
-            return (self.documents[document_id], None)
+            return self.documents[document_id]
         except KeyError as e:
-            return (None, e)
+            return None
 
     def index_token(self, document_id, token):
         self.token_counts[token] += 1
@@ -43,7 +43,5 @@ class InvertedIndex(object):
                 split_document = line.split()
                 document_id = split_document[0]
                 self.index(document_id, line, split_document[1:])
-        # print(self.inverted_index)
-        print(self.documents)
 
 
