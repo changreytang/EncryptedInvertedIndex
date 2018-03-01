@@ -79,10 +79,3 @@ class InvertedIndex(object):
         token_counts_file.close()
         documents_file.close()
 
-
-            # self.inverted_index = dict()
-            # self.document_count = 0
-            # self.token_counts = collections.Counter()
-            # self.documents = dict()
-
-
