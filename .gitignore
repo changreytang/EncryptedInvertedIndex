@@ -1,6 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+__pycache__/ *.py[cod]
 *$py.class
 
 # C extensions
@@ -98,7 +97,6 @@ ENV/
 
 # mypy
 .mypy_cache/
-data/
 *.swp
 inverted_index/
 encrypted_index/
