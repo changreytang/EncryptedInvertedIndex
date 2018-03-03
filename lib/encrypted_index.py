@@ -25,10 +25,10 @@ class EncryptedIndex(object):
             token_counts_file.close()
             documents_file.close()
         else:
-            self.inverted_index = dict()
-            self.document_count = 0
-            self.token_counts = collections.Counter()
-            self.documents = dict()
+            self.inverted_index = dict() # { Key: string(Token) Value: dict{Key: string(document_id) Value: int(counter)} }
+            self.document_count = 0 # holds document counter
+            self.token_counts = collections.Counter() # dictionary of token counter { Key: token Value: int(token_counter) }
+            self.documents = dict() # holds all documents { Key: string(document_id) Value: string(document_content) }
 
     def document(self, document_id):
         try:
@@ -45,27 +45,21 @@ class EncryptedIndex(object):
     def index_tokens(self, document_id, tokens):
         for token in tokens:
             encrypted_token = self.aes.encrypt(self.pad(token))
-            # print(encrypted_token)
             self.index_token(document_id, encrypted_token)
         self.document_count += 1
 
     def add_document(self, document_id, document_content):
         self.documents[document_id] = document_content
 
-    def index(self, document_id, document_content, document_tokens):
+    def index(self, document_id, document_content, document_tokens): 
         encrypted_doc_id = self.aes.encrypt(self.pad(document_id))
         encrypted_doc_content = self.aes.encrypt(self.pad(document_content))
         self.index_tokens(encrypted_doc_id, document_tokens)
         self.add_document(encrypted_doc_id, encrypted_doc_content)
 
-    def query_token(self, token):
-        # print(self.inverted_index[token])
-        return self.inverted_index.get(token, collections.Counter())
-
     def query(self, q):
         encrypted_query = self.aes.encrypt(self.pad(q))
-        # print(encrypted_query)
-        return self.query_token(encrypted_query)
+        return self.inverted_index.get(encrypted_query, collections.Counter())
 
     def index_TREC(self, file_path):
         with open(file_path) as fp:
@@ -94,7 +88,12 @@ class EncryptedIndex(object):
         documents_file.close()
 
     def pad(self, content):
-        return content.ljust(16)[:16]
+        '''
+        0 padding to make cotent 16 in length for aes encryption
+        '''
+        pad_amount = 16 - len(content) % 16
+        pad_content = '0' * pad_amount
+        return content + pad_content
 
 
 
