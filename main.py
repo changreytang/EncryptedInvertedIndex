@@ -14,8 +14,10 @@ def main(index):
         if line.rstrip() == "quit()": # exit 
             break
 
-        for document in index.query(line[:-1]).most_common(10):
-            print(document)
+        # for document in index.query(line[:-1]).most_common(10):
+        for document in index.my_query(line[:-1], 10):
+            print(document[0])
+            print(document[1])
             print(index.document(document[0]))
         print("Query: ", end="", flush=True)
 
