@@ -30,6 +30,10 @@ class EncryptedIndex(object):
             # self.token_counts = collections.Counter() # dictionary of token counter { Key: token Value: int(token_counter) }
             self.documents = dict() # holds all documents { Key: string(document_id) Value: string(document_content) }
 
+    
+    def decrypt(self, document_id):
+        return str(self.aes.decrypt(document_id), 'utf-8')
+
     def document(self, document_id):
         try:
             return str(self.aes.decrypt(self.documents[document_id]), 'utf-8')
@@ -78,23 +82,27 @@ class EncryptedIndex(object):
         Using simple sort call (nlogn)
         Can optimize to linear time using ranking algorithm to find top k numbers
         '''
-        encrypted_query = self.aes.encrypt(self.pad(q))
-        buf = []
-        res = []
-        tmp_num = num
+        try: 
+            encrypted_query = self.aes.encrypt(self.pad(q))
+            buf = []
+            res = []
+            tmp_num = num
 
-        for doc_id in self.inverted_index[encrypted_query]:
-            buf.append((int(str(self.aes.decrypt(self.inverted_index[encrypted_query][doc_id]), 'utf-8').rstrip()), doc_id))
+            for doc_id in self.inverted_index[encrypted_query]:
+                buf.append((int(str(self.aes.decrypt(self.inverted_index[encrypted_query][doc_id]), 'utf-8').rstrip()), doc_id))
 
-        buf.sort()
+            buf.sort()
 
-        if num > len(buf): # safegaurd num larger than index numbers
-            tmp_num = len(buf)
+            if num > len(buf): # safegaurd num larger than index numbers
+                tmp_num = len(buf)
 
-        for i in range(tmp_num):
-            res.append((buf[i][1], buf[i][0]))
+            for i in range(tmp_num):
+                res.append((buf[i][1], buf[i][0]))
 
-        return res
+            return res
+
+        except:
+            return []
 
     def index_TREC(self, file_path):
         with open(file_path) as fp:
