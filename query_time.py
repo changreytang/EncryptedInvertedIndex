@@ -5,15 +5,16 @@ from dotenv import find_dotenv, load_dotenv
 from lib.inverted_index import InvertedIndex
 from lib.encrypted_index import EncryptedIndex
 from timeit import default_timer as timer
-import numpy as np 
+import numpy as np
+
 load_dotenv(find_dotenv())
 
-def main(index):
+def main(index, enc_index):
     print("Query Format: [Desired Keyword] [Number of Documents] [Document Flag (y/n)]")
     print("Keyword Required. Default Document=10. Default Flag=n")
     print("Query: ", end="", flush=True)
 
-    for line in sys.stdin: 
+    for line in sys.stdin:
 
         res = []
         line = line.rstrip()
@@ -23,7 +24,7 @@ def main(index):
         doc_flag = 'n'
 
 
-        if line == "quit()": # exit 
+        if line == "quit()": # exit
             break
 
         if len(line_split) == 1: # arg parser
@@ -43,17 +44,9 @@ def main(index):
 
         start = timer()
 
-        # for document in index.query(line[:-1]).most_common(num_docs):
-        #     doc_word_count = (len(index.document(document[0]).split()))
-        #     word_freq_count = document[1]
-        #     print(document)
-
-        #     buf = ((1000*(1+np.log(word_freq_count))/doc_word_count), document[0])
-        #     res.append(buf)
-
-        for document in index.my_query(line_split[0], num_docs):
+        for document in index.query(line[:-1]).most_common(num_docs):
             doc_word_count = (len(index.document(document[0]).split()))
-            word_freq_count = (index.document(document[0]).count(line_split[0]))
+            word_freq_count = document[1]
 
             buf = ((1000*(1+np.log(word_freq_count))/doc_word_count), document[0])
             res.append(buf)
@@ -61,17 +54,22 @@ def main(index):
         res.sort()
         end = timer()
 
-        print("Query Time: " + str(end - start) + "ms")
+        print("Normal Query Time: " + str(1000*(end - start)) + " ms")
 
-        # for rank, curDoc in enumerate(res[::-1]):
-        #     print (str(rank+1) + ". Doc ID: " + str(curDoc[1]) + " Score: " + str(curDoc[0]))
-        #     if doc_flag=='y':
-        #         print (index.document(document[0]))
+        res = []
+        start = timer()
 
-        for rank, curDoc in enumerate(res[::-1]):
-            print (str(rank+1) + ". Doc ID: " + str(index.decrypt(curDoc[1])) + " Score: " + str(curDoc[0]))
-            if doc_flag=='y':
-                print (index.document(document[0]))
+        for document in enc_index.my_query(line_split[0], num_docs):
+            doc_word_count = (len(enc_index.document(document[0]).split()))
+            word_freq_count = (enc_index.document(document[0]).count(line_split[0]))
+
+            buf = ((1000*(1+np.log(word_freq_count))/doc_word_count), document[0])
+            res.append(buf)
+
+        res.sort()
+        end = timer()
+
+        print("Encrypted Query Time: " + str(1000*(end - start)) + " ms")
 
         print("Query: ", end="", flush=True)
 
@@ -79,21 +77,21 @@ def main(index):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 2:
-        print("USAGE: ./main.py path_to_trec_dataset")
-        exit(0)
+    # if len(sys.argv) != 2:
+    #     print("USAGE: ./main.py path_to_trec_dataset")
+    #     exit(0)
 
-    trec_file_path = sys.argv[1]
+    # trec_file_path = sys.argv[1]
     secret_key = os.environ.get("SECRET_KEY").encode('utf-8')
 
     # index = EncryptedIndex(secret_key)
-    index = EncryptedIndex(secret_key, 'encrypted_index')
+    enc_index = EncryptedIndex(secret_key, 'encrypted_index')
     # index = InvertedIndex()
-    # index = InvertedIndex('inverted_index')
+    index = InvertedIndex('inverted_index')
 
     # index.index_TREC(trec_file_path)
     # index.save_index()
-    main(index)
+    main(index, enc_index)
 
     sys.exit(0)
 
